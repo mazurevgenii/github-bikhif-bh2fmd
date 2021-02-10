@@ -28,6 +28,7 @@ export class AppComponent implements OnInit, OnChanges {
   ];
   private lineData;
   private sliderData;
+  private lines;
 
 
   // lineData = this.data.map((point, index, arr) => {
@@ -216,8 +217,8 @@ export class AppComponent implements OnInit, OnChanges {
 
     this.getLineData(this.data);
 
-    const lines = this.svg.append('g');
-    lines.selectAll('path')
+    this.lines = this.svg.append('g');
+    this.lines.selectAll('path')
       .data(this.lineData)
       .enter().append('path')
       .attr('class', d => `line-${d.idx}`)
@@ -232,10 +233,10 @@ export class AppComponent implements OnInit, OnChanges {
       .on('click', (event, d) => {
         d3.select(event.currentTarget)
           .style('opacity', 1);
-        console.log('event.nextSibling', event.currentTarget.nextSibling);
+        // console.log('event.nextSibling', event.currentTarget.nextSibling);
         this.getSliderData(d);
 
-        console.log('sliderData', this.sliderData);
+        // console.log('sliderData', this.sliderData);
 
         const sliderLines = this.svg.append('g');
         sliderLines.selectAll('path')
@@ -264,60 +265,9 @@ export class AppComponent implements OnInit, OnChanges {
           // })
 
           .call(d3.drag()
-            .on('start', (event, d) => {
-              // console.log('dStart', d);
-              const slider = d3.select(`.slider-${d.idx}`);
-              // console.log('slider1', slider);
-              slider.attr('stroke-width', 3);
-              console.log('Event on Start', event);
-
-              // this.dragstarted(event, d)
-            })
-            .on('drag', (event, d) => {
-
-              const slider = d3.select(`.slider-${d.idx}`);
-              console.log('Event on Drag', event);
-              console.log('dDrag', d);
-              // console.log('slider1', slider);
-              // console.log('eventDrag', event);
-
-              this.data = this.data.map(point => {
-
-                if (point.eventTime === d.point) {
-                  point.eventTime = x.invert(event.x);
-                  return point;
-                }
-                console.log('Point', point)
-                return point;
-              });
-
-              // console.log('testData', testData);
-              console.log('this.data', this.data);
-              this.getLineData(this.data);
-              console.log('this.lineData', this.lineData);
-              
-
-              lines.selectAll('path')
-                .data(this.lineData)
-                .enter().append('path')
-                .attr('class', d => `line-${d.idx}`)
-                .attr('d', d => line(d.p));
-              // d[0] = x.invert(d3.event.x)
-              // @ts-ignore
-              // d3.select(event.sourceEvent.currentTarget)
-              //   .attr('x', event.sourceEvent.x)
-              //   .attr('y', event.sourceEvent.y);
-
-              // this.drawPlot()
-            })
-            .on('end', (event, d) => {
-              // console.log('eventEnd', event);
-
-              const slider = d3.select(`.slider-${d.idx}`);
-              // console.log('slider2', slider);
-              slider.attr('stroke-width', 2);
-
-            }));
+            .on('start', this.dragstarted)
+            .on('drag', this.dragged)
+            .on('end', this.dragended));
       });
 
     // const dragHandler = d3.drag()
@@ -384,6 +334,70 @@ export class AppComponent implements OnInit, OnChanges {
     // );
 
   }
+
+  dragstarted (event, d) {
+              // console.log('dStart', d);
+              const slider = d3.select(`.slider-${d.idx}`);
+              // console.log('slider1', slider);
+              slider.attr('stroke-width', 3);
+              // console.log('Event on Start', event);
+
+              // this.dragstarted(event, d)
+            }
+
+  dragged (event, d) {
+
+              const slider = d3.select(`.slider-${d.idx}`);
+              // console.log('Event on Drag', event);
+              // console.log('dDrag', d);
+              // console.log('slider1', slider);
+              // console.log('eventDrag', event);
+
+              this.data = this.data.map(point => {
+
+                if (point.eventTime === d.point) {
+                  point.eventTime = x.invert(event.x);
+                  return point;
+                }
+                // console.log('Point', point)
+                return point;
+              });
+
+              // console.log('testData', testData);
+              // console.log('this.data', this.data);
+              this.getLineData(this.data);
+              // console.log('this.lineData', this.lineData);
+              
+
+              this.lines.selectAll('path')
+                .data(this.lineData)
+                .enter().append('path')
+                .attr('class', d => `line-${d.idx}`)
+                .attr('d', d => {
+                  console.log(d)
+                  line(d.p)
+                });
+              // d[0] = x.invert(d3.event.x)
+              // @ts-ignore
+              // d3.select(event.sourceEvent.currentTarget)
+              //   .attr('x', event.sourceEvent.x)
+              //   .attr('y', event.sourceEvent.y);
+              // lines.selectAll('path')
+              //   .data(this.lineData)
+              //   .enter().append('path')
+              //   .attr('class', d => `line-${d.idx}`)
+              //   .attr('d', d => line(d.p))
+
+              // this.drawPlot()
+            }   
+  dragended (event, d) {
+              // console.log('eventEnd', event);
+
+              const slider = d3.select(`.slider-${d.idx}`);
+              // console.log('slider2', slider);
+              slider.attr('stroke-width', 2);
+
+            }                     
 
   // dragstarted(event, d) {
   //   console.log('event', event);
